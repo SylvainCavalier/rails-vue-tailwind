@@ -1,0 +1,18 @@
+{
+  "name": "prudhommes_manager",
+  "version": "1.0.0",
+  "license": "MIT",
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.4",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "3",
+    "vite": "^5.0.0",
+    "vite-plugin-ruby": "^5.1.0"
+  },
+  "dependencies": {
+    "pinia": "^3.0.2",
+    "vue": "3",
+    "vue-router": "4"
+  }
+}
