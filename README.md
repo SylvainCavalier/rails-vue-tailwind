@@ -25,15 +25,14 @@ It provides a clean and minimal setup for quickly starting new projects using:
 - Clean file structure: Vue components in `app/frontend`, Rails views fallback to `spa#index`
 
 ## Installation
-
-```bash
+```
 bundle install
 yarn install
 bin/rails db:setup
 bin/dev # Or run foreman if you use Procfile.dev
-
-**## Folder Structure**
-
+```
+## Folder Structure
+```
 app/
 ├── controllers/
 │   └── spa_controller.rb   # Serves the SPA entrypoint
@@ -54,11 +53,11 @@ frontend/
 │   └── counterStore.js     # Example Pinia store
 └── styles/
     └── application.css     # Tailwind base CSS
-
-**## Auth**
+```
+## Auth
 This template does not include authentication yet — feel free to add Devise or Clearance depending on your needs.
 
-**## Notes**
+## Notes
 	•	This is a monolithic Rails app (i.e., not API-only).
 	•	Frontend lives inside the Rails app, no separate Node server needed.
 	•	Vue and Rails share the same domain, simplifying sessions and cookies.
