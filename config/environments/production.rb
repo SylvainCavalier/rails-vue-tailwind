@@ -64,6 +64,20 @@ Rails.application.configure do
   # want to log everything, set the level to "debug".
   config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
 
+  # Configure lograge for better structured logging
+  config.lograge.enabled = true
+  config.lograge.formatter = Lograge::Formatters::Json.new
+  config.lograge.custom_options = lambda do |event|
+    {
+      time: Time.current.iso8601,
+      level: 'INFO',
+      host: Socket.gethostname,
+      request_id: event.payload[:request_id],
+      user_id: event.payload[:user_id],
+      ip: event.payload[:ip]
+    }
+  end
+
   # Use a different cache store in production.
   # config.cache_store = :mem_cache_store
 
