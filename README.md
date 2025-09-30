@@ -17,21 +17,22 @@ SKIP_DB_CHECKS=true rails server
 
 Open http://localhost:3000 to see the dashboard with Axios + Pinia examples!
 
+> Requirement: Node >= 18 (Vite 5)
+
 ## 🛠️ Tech Stack
 
 ### Backend
-- **Ruby on Rails 7.1** with PostgreSQL
+- **Ruby on Rails 7.1.x** with PostgreSQL
 - **Good Job** for background jobs (no Redis needed)
 - **Devise** for authentication (ready to configure)
 - **Pundit** for authorization
 - **Pagy** for pagination
 
-### Frontend  
-- **Vue 3** with Composition API
-- **Vite** for lightning-fast builds
+- **Vue 3.4+** with Composition API
+- **Vite 5** for lightning-fast builds
 - **Pinia** for state management
 - **Axios** pre-configured with CSRF
-- **Tailwind CSS** for styling
+- **Tailwind CSS 3.4** for styling
 - **Vue Router** for SPA navigation
 
 ### Security & Performance

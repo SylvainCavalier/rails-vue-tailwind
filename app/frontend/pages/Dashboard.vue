@@ -55,13 +55,6 @@
               {{ api.loading.value ? 'Loading...' : 'Test API' }}
             </button>
           </div>
-
-          <div class="bg-purple-50 p-4 rounded-lg">
-            <h3 class="font-semibold text-purple-900 mb-2">🔐 Auth Ready</h3>
-            <div class="text-sm text-purple-700">
-              {{ auth.isAuthenticated.value ? '✅ Authenticated' : '⏳ Not configured' }}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -143,13 +136,13 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div class="text-center">
             <div class="text-3xl mb-2">⚡</div>
-            <h3 class="font-semibold text-gray-900 mb-1">Rails 7.1</h3>
+            <h3 class="font-semibold text-gray-900 mb-1">Rails 7.1.x</h3>
             <p class="text-sm text-gray-600">Modern Ruby framework</p>
           </div>
           <div class="text-center">
             <div class="text-3xl mb-2">🎨</div>
-            <h3 class="font-semibold text-gray-900 mb-1">Vue 3 + Vite</h3>
-            <p class="text-sm text-gray-600">Fast frontend development</p>
+            <h3 class="font-semibold text-gray-900 mb-1">Vue {{ versions.vue }} + Vite {{ versions.vite }}</h3>
+            <p class="text-sm text-gray-600">Tailwind {{ versions.tailwind }}</p>
           </div>
           <div class="text-center">
             <div class="text-3xl mb-2">💾</div>
@@ -226,6 +219,7 @@ import { ref } from 'vue'
 import { useCounterStore } from '../stores/counter'
 import { useApi } from '../composables/useApi'
 import { useAuth } from '../composables/useAuth'
+import pkg from '../../../package.json'
 
 const counter = useCounterStore()
 const api = useApi()
@@ -233,17 +227,21 @@ const auth = useAuth()
 
 const apiResponse = ref(null)
 
+// Versions affichées dynamiquement depuis package.json
+const versions = {
+  vue: pkg.dependencies?.vue || '3',
+  vite: pkg.devDependencies?.vite || '5',
+  tailwind: pkg.devDependencies?.tailwindcss || '3'
+}
+
 const testApiCall = async () => {
   try {
-    // This will fail since /api/test doesn't exist, but shows how it works
+    // Test a simple JSON endpoint provided by Rails at /api/test
     const response = await api.get('/test')
     apiResponse.value = response
   } catch (error) {
-    console.log('Expected error for demo:', error.message)
-    apiResponse.value = { 
-      error: 'This is expected - /api/test endpoint does not exist',
-      message: 'Create your API routes and this will work!'
-    }
+    console.log('API error:', error.message)
+    apiResponse.value = { error: error.message }
   }
 }
 
