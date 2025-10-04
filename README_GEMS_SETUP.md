@@ -41,7 +41,7 @@ After creating your first models:
 rails generate annotate:install
 
 # Annotate all existing models
-rails annotate
+bundle exec annotate
 ```
 
 ### 3. Good Job (Job tables)
