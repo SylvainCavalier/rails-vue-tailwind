@@ -9,7 +9,7 @@ This is a **production-ready** setup that includes authentication, security, job
 ```bash
 git clone [your-repo]
 cd rails-vue-tailwind
-bundle install && yarn install
+bundle install && npm install
 
 # Demo mode - see it working immediately
 SKIP_DB_CHECKS=true rails server
@@ -17,7 +17,7 @@ SKIP_DB_CHECKS=true rails server
 
 Open http://localhost:3000 to see the dashboard with Axios + Pinia examples!
 
-> Requirement: Node >= 18 (Vite 5)
+> Requirement: Node 20 (Vite 5)
 
 ## 🛠️ Tech Stack
 
@@ -72,7 +72,7 @@ Open http://localhost:3000 to see the dashboard with Axios + Pinia examples!
 ```bash
 git clone [your-repo]
 cd rails-vue-tailwind
-bundle install && yarn install
+bundle install && npm install
 
 # Start without database (demo mode)
 SKIP_DB_CHECKS=true rails server
