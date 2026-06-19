@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **This repository is a boilerplate / starter template**, meant to be cloned as a starting point for new projects. It must remain generic and reusable.
 
-Rails 8.0 monolith with Vue 3 SPA frontend. Single domain architecture where Vue handles all UI and Rails serves as API backend. Uses Vite for frontend build tooling.
+Rails 8.1 monolith with Vue 3 SPA frontend. Single domain architecture where Vue handles all UI and Rails serves as API backend. Uses Vite for frontend build tooling.
 
 ## Important: Boilerplate Rules
 
@@ -39,7 +39,7 @@ npm install          # Node packages
 ### Database
 ```bash
 rails db:create db:migrate
-bundle exec annotaterb models  # Update model annotations after migrations
+bundle exec annotate --models  # Update model annotations after migrations
 ```
 
 ### Testing (Minitest)
@@ -87,7 +87,7 @@ bundle exec bundler-audit  # Gem vulnerability check
 - Rate limiting configured in `config/initializers/rack_attack.rb`
 - Security headers in `config/initializers/secure_headers.rb`
 
-### Pagy 43 Usage
+### Pagy Usage
 ```ruby
 # In controllers (include Pagy::Method already in ApplicationController)
 @pagy, @records = pagy(:offset, Model.all)
@@ -100,6 +100,6 @@ bundle exec bundler-audit  # Gem vulnerability check
 
 ## Key Dependencies
 
-**Backend:** Rails 8.0, PostgreSQL, Devise, Pundit, GoodJob, Pagy 43, PaperTrail
-**Frontend:** Vue 3.5, Vite 5, Pinia, Vue Router, Axios, Tailwind CSS 3.4
-**Requires:** Ruby 3.3.5, Node 20.x
+**Backend:** Rails 8.1, PostgreSQL, Devise, Pundit, GoodJob, Pagy, PaperTrail
+**Frontend:** Vue 3.5, Vite 6, Pinia, Vue Router, Axios, Tailwind CSS 4
+**Requires:** Ruby 3.4.8, Node 22.x

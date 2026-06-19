@@ -4,7 +4,7 @@
   "type": "module",
   "license": "MIT",
   "engines": {
-    "node": "20.x"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "bin/vite dev",
@@ -14,19 +14,18 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
-    "@vitejs/plugin-vue": "5.2.4",
-    "autoprefixer": "10.4.21",
+    "@tailwindcss/vite": "^4.1",
+    "@vitejs/plugin-vue": "^5.2",
     "eslint": "^9.39.2",
     "eslint-plugin-vue": "^10.6.2",
-    "postcss": "8.5.3",
-    "tailwindcss": "3.4.17",
-    "vite": "5.4.20",
-    "vite-plugin-ruby": "5.1.1"
+    "tailwindcss": "^4.1",
+    "vite": "^6.3",
+    "vite-plugin-ruby": "^5.1"
   },
   "dependencies": {
     "axios": "^1.12.2",
-    "pinia": "3.0.4",
-    "vue": "3.5.26",
-    "vue-router": "4.6.4"
+    "pinia": "^3.0",
+    "vue": "^3.5",
+    "vue-router": "^4.6"
   }
 }
