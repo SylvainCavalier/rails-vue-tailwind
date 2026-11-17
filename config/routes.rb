@@ -1,11 +1,6 @@
 Rails.application.routes.draw do
+  root "home#index"
 
-root to: 'spa#index'
-
-  # Simple API test endpoint used by the dashboard demo
-  namespace :api do
-    get 'test', to: 'test#index'
-  end
-
-get '*path', to: 'spa#index', constraints: ->(req) { !req.xhr? && req.format.html? }
+  # Each route maps to a controller action that renders an Inertia page.
+  # For static pages without a controller: `inertia "about"` renders pages/about.vue.
 end

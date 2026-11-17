@@ -70,7 +70,7 @@ Rails.application.configure do
   config.lograge.custom_options = lambda do |event|
     {
       time: Time.current.iso8601,
-      level: 'INFO',
+      level: "INFO",
       host: Socket.gethostname,
       request_id: event.payload[:request_id],
       user_id: event.payload[:user_id],

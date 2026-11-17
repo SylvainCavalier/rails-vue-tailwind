@@ -39,6 +39,7 @@
 /public/vite
 /public/vite-dev
 /public/vite-ssr
+/public/vite-test
 node_modules
 node_modules/.vite
 # Vite uses dotenv and suggests to ignore local-only env files. See

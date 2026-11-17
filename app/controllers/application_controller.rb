@@ -1,36 +1,29 @@
 class ApplicationController < ActionController::Base
-  # Include Pundit for authorization
   include Pundit::Authorization
-
-  # Include Pagy for pagination (v43+)
   include Pagy::Method
-  
-  # Protect from forgery with exception
+
   protect_from_forgery with: :exception
-  
-  # Rescue from Pundit authorization errors
-  rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
-  
-  # Uncomment when you have devise installed and configured
+
+  # Data shared with every Inertia page (available as page.props in Vue).
+  # Keep it small: it is sent on every request. Type it in app/frontend/types/globals.d.ts.
+  # Example once Devise is installed:
+  #   inertia_share auth: -> { { user: current_user&.as_json(only: %i[id email]) } }
+
+  # Uncomment once Devise is installed (see README_DEVISE_INTEGRATION.md)
   # before_action :authenticate_user!
-  # before_action :configure_permitted_parameters, if: :devise_controller?
-  
-  # Helper method to check if Devise is available
-  def devise_available?
-    defined?(Devise) && respond_to?(:devise_controller?)
-  end
-  
+
+  rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
+  rescue_from ActionController::InvalidAuthenticityToken, with: :page_expired
+
   private
-  
+
+  # Inertia follows redirects, so a redirect + flash is the right response for both
+  # full page loads and Inertia visits. The flash is exposed as page.flash in Vue.
   def user_not_authorized
-    flash[:alert] = "You are not authorized to perform this action."
-    redirect_back(fallback_location: root_path)
+    redirect_back_or_to root_path, alert: "You are not authorized to perform this action."
   end
-  
-  # Uncomment and customize when using Devise
-  # def configure_permitted_parameters
-  #   devise_parameter_sanitizer.permit(:sign_up, keys: [:email, :password, :password_confirmation])
-  #   devise_parameter_sanitizer.permit(:sign_in, keys: [:email, :password, :remember_me])
-  #   devise_parameter_sanitizer.permit(:account_update, keys: [:email, :password, :password_confirmation, :current_password])
-  # end
+
+  def page_expired
+    redirect_back_or_to root_path, alert: "The page expired, please try again."
+  end
 end

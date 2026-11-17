@@ -1,128 +1,132 @@
-# Devise Integration Guide
+# Devise Integration Guide (Inertia)
 
-This boilerplate is pre-configured to be compatible with Devise. Here are the steps to install it without conflicts.
+Authentication uses plain Devise sessions (cookie-based). No tokens, no `localStorage`:
+Inertia requests are same-origin and carry the session cookie and the CSRF token automatically.
 
-## Installing Devise
-
-### 1. Install Devise
+## 1. Install
 
 ```bash
-# Gems are already in the Gemfile
-bundle install
-
-# Generate Devise configuration
 rails generate devise:install
+rails generate devise User
+rails db:migrate
 ```
 
-### 2. Configure Devise with SecureHeaders
+## 2. Make Devise Inertia-friendly
 
-After installation, in your Devise controllers, add:
+In `config/initializers/devise.rb`:
 
 ```ruby
-# app/controllers/users/sessions_controller.rb (if you customize it)
+# Inertia visits are XHR requests: without this, failed logins return a bare 401
+# instead of redirecting back with a flash message.
+config.http_authenticatable_on_xhr = false
+config.navigational_formats = ["*/*", :html]
+```
+
+## 3. Routes and controllers
+
+```ruby
+# config/routes.rb
+devise_for :users, controllers: {
+  sessions: "users/sessions",
+  registrations: "users/registrations"
+}
+```
+
+```ruby
+# app/controllers/users/sessions_controller.rb
 class Users::SessionsController < Devise::SessionsController
-  before_action :use_secure_headers_override
-
-  private
-
-  def use_secure_headers_override
-    use_secure_headers_override(:devise_forms)
+  def new
+    render inertia: "users/sessions/new"
   end
 end
 ```
 
-### 3. Create the User model
-
-```bash
-# Generate User model
-rails generate devise User
-
-# Migrate
-rails db:migrate
-```
-
-### 4. Uncomment in ApplicationController
-
-In `app/controllers/application_controller.rb`, uncomment:
+Failed logins are handled by Devise's failure app: it redirects back to `new` with
+`flash[:alert]`, which Inertia exposes as `page.flash.alert`.
 
 ```ruby
-before_action :authenticate_user!
-before_action :configure_permitted_parameters, if: :devise_controller?
+# app/controllers/users/registrations_controller.rb
+class Users::RegistrationsController < Devise::RegistrationsController
+  def new
+    render inertia: "users/registrations/new"
+  end
+
+  def create
+    build_resource(sign_up_params)
+
+    if resource.save
+      sign_up(resource_name, resource)
+      redirect_to after_sign_up_path_for(resource), notice: "Welcome!"
+    else
+      redirect_to new_user_registration_path, inertia: { errors: resource.errors }
+    end
+  end
+end
 ```
 
-### 5. Configure routes (optional)
+## 4. Vue pages
 
-In `config/routes.rb`, you can customize:
+```vue
+<!-- app/frontend/pages/users/sessions/new.vue -->
+<script setup lang="ts">
+import { Head, useForm } from '@inertiajs/vue3'
 
-```ruby
-devise_for :users, controllers: {
-  sessions: 'users/sessions',
-  registrations: 'users/registrations',
-  passwords: 'users/passwords'
+const form = useForm({ email: '', password: '', remember_me: false })
+
+const submit = () => {
+  // Devise expects params nested under `user`
+  form.transform((data) => ({ user: data })).post('/users/sign_in', {
+    onFinish: () => form.reset('password'),
+  })
 }
+</script>
+
+<template>
+  <Head title="Sign in" />
+  <form @submit.prevent="submit">
+    <input v-model="form.email" type="email" autocomplete="email" />
+    <input v-model="form.password" type="password" autocomplete="current-password" />
+    <button type="submit" :disabled="form.processing">Sign in</button>
+  </form>
+</template>
 ```
 
-## Ready-Made Configurations
+Registration follows the same pattern; validation errors are available as
+`form.errors.email` (array of messages, see `errorValueType` in `types/globals.d.ts`).
 
-### SecureHeaders
-- ✅ CSP configured to allow Devise forms
-- ✅ Override configuration available (`:devise_forms`)
-- ✅ Support for OAuth redirections
+Sign out:
 
-### Rack::Attack  
-- ✅ Rate limiting on login attempts
-- ✅ Rate limiting on password reset attempts
-- ✅ Rate limiting on account creation
-- ✅ Compatible with default Devise routes
-
-### InvisibleCaptcha
-- ✅ Anti-spam protection on forms
-- ✅ Compatible with Devise forms
-
-### Good Job
-- ✅ Ready for asynchronous Devise emails
-- ✅ Configuration for cleanup tasks
-
-## Customizing Views
-
-```bash
-# Generate Devise views for customization
-rails generate devise:views
-
-# Or for a specific scope
-rails generate devise:views users
+```vue
+<Link href="/users/sign_out" method="delete" as="button">Sign out</Link>
 ```
 
-## Mailer Configuration
-
-The mailer is already configured with `letter_opener` in development in `config/environments/development.rb`.
-
-For production, add to `config/environments/production.rb`:
+## 5. Share the current user and protect pages
 
 ```ruby
-config.action_mailer.default_url_options = { host: 'your-domain.com', protocol: 'https' }
+# app/controllers/application_controller.rb
+before_action :authenticate_user!
+inertia_share auth: -> { { user: current_user&.as_json(only: %i[id email]) } }
+```
+
+Skip it on public controllers with `skip_before_action :authenticate_user!`.
+Then uncomment `SharedProps` in `app/frontend/types/index.ts` and `sharedPageProps`
+in `app/frontend/types/globals.d.ts`: `page.props.auth.user` is now typed everywhere.
+
+## 6. Already configured
+
+- **Rack::Attack**: rate limiting on `/users/sign_in` (by IP and email, JSON bodies included),
+  `/users/password` and `/users/sign_up`.
+- **SecureHeaders**: CSP allows Devise forms and OAuth redirects (`:devise_forms` override).
+- **Letter Opener**: Devise emails open in the browser in development.
+
+For production emails, add to `config/environments/production.rb`:
+
+```ruby
+config.action_mailer.default_url_options = { host: "your-domain.com", protocol: "https" }
 config.action_mailer.delivery_method = :smtp
-# Add your SMTP configuration
 ```
 
-## Recommended Environment Variables
-
-Add to your `.env`:
-
-```env
-# Devise
-DEVISE_SECRET_KEY=your_devise_secret_key
-
-# Mailer (production)
-SMTP_HOST=smtp.your-provider.com
-SMTP_PORT=587
-SMTP_USERNAME=your-username
-SMTP_PASSWORD=your-password
-```
-
-## Testing with Devise
-
-The boilerplate includes `factory_bot_rails`. Create your factories:
+## 7. Testing
 
 ```ruby
 # spec/factories/users.rb
@@ -130,28 +134,16 @@ FactoryBot.define do
   factory :user do
     email { Faker::Internet.email }
     password { "password123" }
-    password_confirmation { "password123" }
   end
 end
 ```
 
-## OAuth (optional)
+```ruby
+# spec/support/devise.rb
+RSpec.configure do |config|
+  config.include Devise::Test::IntegrationHelpers, type: :request
+  config.include Devise::Test::IntegrationHelpers, type: :system
+end
+```
 
-If you add OAuth (Google, Facebook, etc.), the CSP is already configured to allow external HTTPS redirections.
-
-## Debugging
-
-If you encounter issues:
-
-1. **CSP violations**: Check browser console for CSP errors
-2. **Rate limiting**: Check logs for Rack::Attack messages  
-3. **Mailer errors**: Verify that `letter_opener` works in dev
-
-## Loading Order
-
-Initializers load automatically in alphabetical order:
-- `devise.rb` (generated by Devise)
-- `rack_attack.rb` (rate limiting protection)
-- `secure_headers.rb` (security headers)
-
-No dependency conflicts thanks to compatible configuration.
+Then `sign_in create(:user)` in request and system specs.

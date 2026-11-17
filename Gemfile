@@ -10,11 +10,11 @@ gem "pg", ">= 1.5"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 
-# Build JSON APIs with ease [https://github.com/rails/jbuilder]
-gem "jbuilder"
-
-# Pipeline Vite for frontend build
+# Vite integration for frontend build
 gem "vite_rails"
+
+# Inertia.js adapter: Rails controllers render Vue pages directly (no JSON API layer)
+gem "inertia_rails", "~> 3.23"
 
 # Standard library gems no longer bundled by default in recent Rubies
 gem "ostruct"
@@ -54,7 +54,6 @@ gem "devise"           # Auth users
 gem "pundit"           # Authorization for controllers
 gem "rack-attack"      # Rate limiting
 gem "secure_headers"   # Content security policy
-gem "invisible_captcha" # Prevent bots from submitting forms
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ]
@@ -62,7 +61,8 @@ group :development, :test do
   gem "faker"                                # Fake data generation for tests
   gem "brakeman", require: false             # Static security analysis
   gem "bundler-audit", require: false        # Gem vulnerability check
-  gem "annotate"                             # Annotate models with schema
+  gem "annotaterb"                           # Annotate models with schema
+  gem "rspec-rails", "~> 8.0"                # Test framework
   gem "rubocop-rails-omakase", require: false # Rails 8 official omakase ruleset
 end
 
@@ -74,7 +74,7 @@ group :development do
 end
 
 group :test do
-  gem "capybara"          # System testing
-  gem "cuprite"           # Headless Chrome for system tests (no Selenium needed)
+  gem "capybara"           # System testing
+  gem "selenium-webdriver" # Headless Chrome driver for system specs
   gem "shoulda-matchers"  # One-liners for validations/associations
 end

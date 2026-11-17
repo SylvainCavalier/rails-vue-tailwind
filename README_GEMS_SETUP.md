@@ -12,7 +12,6 @@ These gems are already configured and functional:
 - **secure_headers** - Security headers (CSP, HSTS, etc.)
 - **pagy** - Lightweight and performant pagination
 - **pundit** - Authorization (included in ApplicationController)
-- **invisible_captcha** - Anti-spam protection without visible captcha
 - **letter_opener** - Email preview in development
 
 ## Gems Requiring Post-Database Configuration 🔧
@@ -134,7 +133,7 @@ To test the boilerplate immediately, see instructions in [README.md](README.md) 
 
 ## Important Notes
 
-- **Meta Tags**: Add `<%= display_meta_tags %>` to your layout
+- **Meta Tags**: Optional, for server-rendered SEO tags in the root layout. Per-page titles use `<Head>` from Inertia
 - **Image Processing**: Configured for Active Storage
 - **Pundit**: Create your policies in `app/policies/`
-- **Pagy**: Use `pagy()` in your controllers and `pagy_nav()` in your views
+- **Pagy**: Use `pagy()` in your controllers and pass `@pagy.data_hash` (or the fields you need) as an Inertia prop

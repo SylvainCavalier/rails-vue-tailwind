@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "MyApp" %></title>
+    <title data-inertia><%= content_for(:title) || "MyApp" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
     <%= vite_client_tag %>
-    <%= vite_javascript_tag 'application' %>
+    <%= vite_typescript_tag "application" %>
+    <%= inertia_ssr_head %>
   </head>
 
   <body>

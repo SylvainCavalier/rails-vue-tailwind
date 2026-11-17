@@ -1,230 +1,139 @@
-# Rails + Vue 3 + Tailwind Production-Ready Boilerplate
+# Rails + Inertia + Vue 3 + Tailwind Boilerplate
 
-A comprehensive **Rails monolith** boilerplate for building modern **Single Page Applications (SPA)** with **Vue 3**, **Vite**, and **Tailwind CSS**.
+Rails monolith with a Vue 3 frontend, glued together by [Inertia.js](https://inertia-rails.dev).
+Rails controllers render Vue pages directly with props: no JSON API, no client-side router,
+no state store for server data. You get SPA navigation with classic Rails controllers,
+sessions and redirects.
 
-This is a **production-ready** setup that includes authentication, security, job processing, and all the essential gems you need to build real applications.
-
-## 🚀 Quick Demo (No Database Required)
+## Quick start
 
 ```bash
-git clone [your-repo]
-cd rails-vue-tailwind
 bundle install && npm install
 
-# Demo mode - see it working immediately
-SKIP_DB_CHECKS=true rails server
+# Demo mode (no database required)
+SKIP_DB_CHECKS=true foreman start -f Procfile.dev
 ```
 
-Open http://localhost:3000 to see the dashboard with Axios + Pinia examples!
+Open http://localhost:3000.
 
-> Requirement: Node 20 (Vite 5)
+### Full setup (with database)
 
-## 🛠️ Tech Stack
-
-### Backend
-- **Ruby on Rails 8.0** with PostgreSQL
-- **Good Job** for background jobs (no Redis needed)
-- **Devise** for authentication (ready to configure)
-- **Pundit** for authorization
-- **Pagy 43** for pagination (simplified API)
-
-### Frontend
-- **Vue 3.5** with Composition API
-- **Vite 5** for lightning-fast builds
-- **Pinia** for state management
-- **Axios** pre-configured with CSRF
-- **Tailwind CSS 3.4** for styling
-- **Vue Router** for SPA navigation
-
-### Security & Performance
-- **Rack::Attack** for rate limiting  
-- **SecureHeaders** with CSP configuration
-- **InvisibleCaptcha** for spam protection
-- **Paper Trail** for model versioning
-- **Image Processing** for Active Storage
-
-## ✨ Features
-
-### 🎯 Ready-to-Use Components
-- **Axios + Pinia integration** with CSRF protection
-- **Authentication system** ready (Devise pre-configured)
-- **Authorization** with Pundit policies
-- **Rate limiting** and security headers
-- **Background jobs** with Good Job (PostgreSQL-based)
-- **Email preview** in development (Letter Opener)
-
-### 🔧 Developer Experience
-- **Hot-reload** with Vite during development
-- **Vue DevTools** support with Pinia stores
-- **API-first** approach with dedicated composables
-- **Error handling** and loading states built-in
-- **Clean architecture** with stores, composables, and components
-- **ESLint** for Vue/JS linting (relaxed config)
-- **RuboCop** for Ruby linting (relaxed config)
-
-### 🛡️ Production Ready
-- **Security headers** configured (CSP, HSTS, etc.)
-- **Rate limiting** for APIs and auth endpoints  
-- **CSRF protection** for all requests
-- **Spam protection** with invisible captcha
-- **SEO ready** with meta-tags gem
-
-## 📦 Installation
-
-### Quick Start (Demo Mode)
 ```bash
-git clone [your-repo]
-cd rails-vue-tailwind
-bundle install && npm install
-
-# Start without database (demo mode)
-SKIP_DB_CHECKS=true rails server
-```
-
-### Full Setup (With Database)
-```bash
-# 1. Install PostgreSQL (if not already installed)
-# macOS: brew install postgresql
-# Ubuntu: sudo apt-get install postgresql
-
-# 2. Remove demo mode
 rm config/initializers/disable_db_checks.rb
-
-# 3. Setup PostgreSQL
-rails db:create
-
-# 4. Install gems (optional, see GEMS_SETUP.md)
-rails generate devise:install
-rails generate devise User  
-rails generate good_job:install
-rails db:migrate
-
-# 5. Start normally
-rails server
+bin/rails db:create
+foreman start -f Procfile.dev
 ```
 
-📖 **Detailed Setup:** See [README_GEMS_SETUP.md](README_GEMS_SETUP.md) and [README_DEVISE_INTEGRATION.md](README_DEVISE_INTEGRATION.md)
+Optional gems setup (Devise, GoodJob, PaperTrail...): see [README_GEMS_SETUP.md](README_GEMS_SETUP.md)
+and [README_DEVISE_INTEGRATION.md](README_DEVISE_INTEGRATION.md).
 
-### Linting
+## Stack
+
+**Backend:** Rails 8.1, PostgreSQL, inertia_rails, Devise (not generated), Pundit, GoodJob, Pagy,
+PaperTrail, pg_search, friendly_id, Rack::Attack, SecureHeaders
+**Frontend:** Vue 3.5 + TypeScript, Inertia.js 3, Vite 8, Tailwind CSS 4
+**Tests:** RSpec + factory_bot + Capybara/Selenium (back), Vitest + Vue Test Utils (front)
+**Requires:** Ruby 3.4.8, Node 22.x
+
+## How it works
+
+```ruby
+# config/routes.rb
+resources :projects
+
+# app/controllers/projects_controller.rb
+class ProjectsController < ApplicationController
+  def index
+    render inertia: { projects: Project.all.as_json(only: %i[id name]) }
+  end
+
+  def create
+    project = Project.new(project_params)
+    if project.save
+      redirect_to projects_path, notice: "Project created"
+    else
+      redirect_to new_project_path, inertia: { errors: project.errors }
+    end
+  end
+end
+```
+
+```vue
+<!-- app/frontend/pages/projects/index.vue (path inferred from controller/action) -->
+<script setup lang="ts">
+import { Link } from '@inertiajs/vue3'
+
+defineProps<{ projects: { id: number; name: string }[] }>()
+</script>
+
+<template>
+  <Link v-for="project in projects" :key="project.id" :href="`/projects/${project.id}`">
+    {{ project.name }}
+  </Link>
+</template>
+```
+
+```vue
+<!-- app/frontend/pages/projects/new.vue -->
+<script setup lang="ts">
+import { useForm } from '@inertiajs/vue3'
+
+const form = useForm({ name: '' })
+const submit = () => form.transform((data) => ({ project: data })).post('/projects')
+</script>
+
+<template>
+  <form @submit.prevent="submit">
+    <input v-model="form.name" />
+    <p v-if="form.errors.name">{{ form.errors.name.join(', ') }}</p>
+    <button :disabled="form.processing">Save</button>
+  </form>
+</template>
+```
+
+- **Flash** (`notice`, `alert`) is shown by `layouts/AppLayout.vue` (default persistent layout).
+- **CSRF** is handled automatically (XSRF-TOKEN cookie).
+- **Authorization**: Pundit errors redirect back with an `alert` flash.
+- **Shared props** (current user...): `inertia_share` in `ApplicationController`, typed in
+  `app/frontend/types/globals.d.ts`.
+
+## Commands
 
 ```bash
-npm run lint              # ESLint for Vue/JS
-npm run lint:fix          # ESLint with auto-fix
-bundle exec rubocop       # RuboCop for Ruby
-bundle exec rubocop -a    # RuboCop with auto-fix
+foreman start -f Procfile.dev   # Rails + Vite dev servers
+
+bundle exec rspec               # Backend + system specs
+npm test                        # Vitest unit tests
+npm run check                   # TypeScript (vue-tsc)
+npm run lint                    # ESLint
+bundle exec rubocop             # RuboCop
+bundle exec brakeman            # Security analysis
 ```
 
-## 📁 Project Structure
+## Project structure
 
 ```
 app/
 ├── controllers/
-│   ├── application_controller.rb  # Pundit + Pagy included
-│   └── spa_controller.rb          # Serves the SPA entrypoint
-├── frontend/
-│   ├── components/
-│   │   └── App.vue                # Root Vue component
-│   ├── composables/
-│   │   ├── useApi.js              # API calls with Axios
-│   │   └── useAuth.js             # Authentication helpers
-│   ├── entrypoints/
-│   │   └── application.js         # Main entrypoint + Pinia setup
-│   ├── pages/
-│   │   └── Dashboard.vue          # Example page with demos
-│   ├── plugins/
-│   │   └── axios.js               # Axios + CSRF configuration
-│   ├── router/
-│   │   ├── index.js               # Vue Router config
-│   │   └── routes.js              # Route definitions
-│   ├── stores/
-│   │   ├── api.js                 # API store with loading states
-│   │   ├── auth.js                # Authentication store
-│   │   └── counter.js             # Example store
-│   └── styles/
-│       └── application.css        # Tailwind base
-├── helpers/
-│   └── application_helper.rb      # App helpers
-└── views/
-    └── spa/
-        └── index.html.erb         # Vue app mount point
-
-config/
-├── initializers/
-│   ├── good_job.rb               # Background jobs config
-│   ├── pagy.rb                   # Pagination config
-│   ├── rack_attack.rb            # Rate limiting rules
-│   ├── secure_headers.rb         # Security headers + CSP
-│   └── disable_db_checks.rb     # Demo mode (remove for production)
-└── database.yml                 # PostgreSQL configuration
-
-eslint.config.js                  # ESLint config (Vue/JS)
-.rubocop.yml                      # RuboCop config (Ruby)
+│   ├── application_controller.rb   # Pundit, Pagy, Inertia shared data, error redirects
+│   └── home_controller.rb          # Example Inertia page
+└── frontend/
+    ├── entrypoints/
+    │   ├── application.ts          # createInertiaApp (pages, default layout, title)
+    │   └── application.css         # Tailwind
+    ├── layouts/AppLayout.vue       # Default persistent layout (flash messages)
+    ├── components/                 # Reusable components (+ *.spec.ts Vitest specs)
+    ├── pages/                      # One folder per controller, one file per action
+    └── types/                      # Shared TS types + Inertia global typing
+spec/
+├── requests/                       # Controller + Inertia props specs
+└── system/                         # End-to-end specs (headless Chrome)
 ```
 
-## 🔐 Authentication & Security
+## Deployment
 
-This boilerplate includes **Devise** pre-configured but not installed by default. When you're ready:
-
-```bash
-rails generate devise:install
-rails generate devise User
-rails db:migrate
-```
-
-Security features included:
-- **CSRF protection** for all Axios requests
-- **Rate limiting** on login/registration endpoints  
-- **Content Security Policy** configured for Vue + Vite
-- **Secure headers** (HSTS, X-Frame-Options, etc.)
-- **Invisible captcha** for form protection
-
-## 💡 Usage Examples
-
-### Making API Calls
-```javascript
-// In any Vue component
-import { useApi } from '@/composables/useApi'
-
-const api = useApi()
-const users = await api.get('/users')
-```
-
-### State Management  
-```javascript  
-// Using Pinia stores
-import { useAuthStore } from '@/stores/auth'
-
-const auth = useAuthStore()
-await auth.login({ email: '...', password: '...' })
-```
-
-### CRUD Operations
-```javascript
-// Built-in CRUD helpers
-const usersCrud = api.useCrud('users')
-const newUser = await usersCrud.create({ name: 'John' })
-```
-
-## 📚 Documentation
-
-- **[README_GEMS_SETUP.md](README_GEMS_SETUP.md)** - Detailed gem configuration  
-- **[README_DEVISE_INTEGRATION.md](README_DEVISE_INTEGRATION.md)** - Authentication setup
-- **[README_AXIOS_PINIA_SETUP.md](README_AXIOS_PINIA_SETUP.md)** - Frontend architecture
-
-## 🏗️ Architecture Notes
-
-- **Monolithic Rails app** (not API-only) with SPA frontend
-- **Single domain** for Vue and Rails (simplified sessions/cookies)
-- **PostgreSQL** for both app data and background jobs
-- **No separate Node server** needed - everything runs through Rails
-- **Vite integration** with hot-reload in development
-
----
-
-## 🚀 Ready to Build Amazing Apps!
-
-This boilerplate gives you everything you need to build modern, secure, and scalable Rails applications with Vue.js.
-
-**Fork it, customize it, and start building!** 
+- **Heroku / Scalingo:** add the Node.js buildpack before the Ruby one so Vite can build
+  assets during `assets:precompile`.
+- **Docker:** the `Dockerfile` installs Node at build time only.
 
 Maintainer: [@SylvainCavalier](https://github.com/SylvainCavalier)
