@@ -11,7 +11,7 @@ sessions and redirects.
 bundle install && npm install
 
 # Demo mode (no database required)
-SKIP_DB_CHECKS=true foreman start -f Procfile.dev
+SKIP_DB_CHECKS=true bin/dev
 ```
 
 Open http://localhost:3000.
@@ -21,7 +21,7 @@ Open http://localhost:3000.
 ```bash
 rm config/initializers/disable_db_checks.rb
 bin/rails db:create
-foreman start -f Procfile.dev
+bin/dev
 ```
 
 Optional gems setup (Devise, GoodJob, PaperTrail...): see [README_GEMS_SETUP.md](README_GEMS_SETUP.md)
@@ -100,7 +100,7 @@ const submit = () => form.transform((data) => ({ project: data })).post('/projec
 ## Commands
 
 ```bash
-foreman start -f Procfile.dev   # Rails + Vite dev servers
+bin/dev                         # Rails (localhost:3000) + Vite dev server (HMR)
 
 bundle exec rspec               # Backend + system specs
 npm test                        # Vitest unit tests

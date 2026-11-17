@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+# Starts Rails (http://localhost:3000) and the Vite dev server (HMR).
+# Override ports to run several apps at once: RAILS_PORT=3001 VITE_RUBY_PORT=3037 bin/dev
+
+if ! command -v foreman > /dev/null 2>&1; then
+  echo "Installing foreman..."
+  gem install foreman
+fi
+
+exec foreman start -f Procfile.dev "$@"

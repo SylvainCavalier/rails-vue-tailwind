@@ -18,7 +18,8 @@ Rails 8.1 monolith with a Vue 3 + TypeScript frontend connected through **Inerti
 ## Common Commands
 
 ```bash
-foreman start -f Procfile.dev   # Rails (3000) + Vite dev server
+bin/dev                         # Rails (localhost:3000) + Vite dev server (HMR)
+RAILS_PORT=3001 VITE_RUBY_PORT=3037 bin/dev  # Run alongside another app
 SKIP_DB_CHECKS=true rails s     # Demo mode, no database
 
 bundle exec rspec                       # All Ruby specs (request + system)
